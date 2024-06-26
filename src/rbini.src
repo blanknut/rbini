@@ -1,0 +1,125 @@
+;**********************************************************************
+; A ROM to re-initialize a corrupted W&W 32K RAMBOX.
+; Written in 2024 by Jurgen Keller <jkeller@gmx.ch>
+;**********************************************************************
+
+            .TITLE  "RAMBOX32 Initialization"
+            .JDA
+
+;*** Main entry *******************************************************
+
+; A take-over module has no header, it simply starts at address 0.
+; Note that this code runs in page #4 (ROM).
+
+(TAKEOVER)  DSPOFF
+            DSPTOG
+            ?NCXQ       [CLLCDE]
+            SETHEX
+
+            LDIS&X      10B         ; show progress (little man)
+            WRIT        15(e)
+
+            ?NCXQREL    (CLPG92F)   ; clear RAM pages #9 to #A
+            LDIS&X      02A         ; show progress (*)
+            WRIT        15(e)
+
+
+            ?NCXQREL    (COPYOS8)   ; copy O/S from page 9 (ROM) to 8 (RAM)
+            LDIS&X      038         ; show progress (8)
+            WRIT        15(e)
+
+            ?NCXQ       [ENCP00]
+            ?NCXQ       [BEEP]      ; fanfare
+            
+            DSPOFF                  ; done, power off
+            POWOFF
+            NOP
+
+;*** Helper Routines **************************************************
+
+            ; copy O/S from page 9 to 8
+(COPYOS8)   C=0         ALL
+(COPYL8)    RCR         11
+            R=          6
+            LD@R        9
+            FETCHS&X
+            R=          6
+            LD@R        8
+            WROM
+            RCR         3
+            C=C+1       S&X
+            JNC         (COPYL8)
+            RTN
+
+            ; clear pages 9 to F
+(CLPG92F)   ?NCXQREL    (CLPG9)
+            LDIS&X      039         ; show progress (9)
+            WRIT        15(e)
+
+            ?NCXQREL    (CLPGA)
+            LDIS&X      001         ; show progress (A)
+            WRIT        15(e)
+
+            ?NCXQREL    (CLPGB)
+            LDIS&X      002         ; show progress (B)
+            WRIT        15(e)
+
+            ?NCXQREL    (CLPGC)
+            LDIS&X      003         ; show progress (C)
+            WRIT        15(e)
+
+            ?NCXQREL    (CLPGD)
+            LDIS&X      004         ; show progress (D)
+            WRIT        15(e)
+
+            ?NCXQREL    (CLPGE)
+            LDIS&X      005         ; show progress (E)
+            WRIT        15(e)
+
+            ?NCXQREL    (CLPGF)     ; show progress (F)
+            LDIS&X      006
+            WRIT        15(e)
+            RTN
+
+            ; routines to clear individual pages
+
+(CLPG9)     C=0         ALL
+            R=          3
+            LD@R        9
+            JNC         (CLPGX)
+
+(CLPGA)     C=0         ALL
+            R=          3
+            LD@R        A
+            JNC         (CLPGX)
+
+(CLPGB)     C=0         ALL
+            R=          3
+            LD@R        B
+            JNC         (CLPGX)
+
+(CLPGC)     C=0         ALL
+            R=          3
+            LD@R        C
+            JNC         (CLPGX)
+
+(CLPGD)     C=0         ALL
+            R=          3
+            LD@R        D
+            JNC         (CLPGX)
+
+(CLPGE)     C=0         ALL
+            R=          3
+            LD@R        E
+            JNC         (CLPGX)
+
+(CLPGF)     C=0         ALL
+            R=          3
+            LD@R        F
+
+(CLPGX)     RCR         11
+            WROM
+            RCR         3
+            C=C+1       S&X
+            JNC         (CLPGX)
+            RTN

@@ -1,0 +1,11 @@
+;**********************************************************************
+; Link file for RAMBOX32 initialization ROM
+
+; Define page, bank and ROM name
+$PAGE 8 1 rbini
+
+; Tell the linker the name of the .obj files
+rbini
+
+; Calculate and store the checksum in the ROM image as well
+$CH
